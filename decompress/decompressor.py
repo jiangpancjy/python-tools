@@ -4,6 +4,7 @@
 """
 import os
 import tarfile
+import zipfile
 from typing import Optional, NoReturn
 
 from decompress.exceptions import (
@@ -14,6 +15,7 @@ from decompress.exceptions import (
     OutputDirPermissionDenyError, UnsupportedTypeError,
 )
 from decompress.tarball_decompressor import TarballDecompressor
+from decompress.zip_decompressor import ZipDecompressor
 
 
 class Decompressor:
@@ -47,7 +49,7 @@ class Decompressor:
         decompressor.decompress(decompressed_file_path, output_dir, max_size, max_count)
 
     @classmethod
-    def _get_decompressor(cls, path: str) -> Optional[TarballDecompressor]:
+    def _get_decompressor(cls, path: str) -> Optional[TarballDecompressor, ZipDecompressor]:
         """
         解压器工厂方法，根据压缩文件的压缩格式，返回对应的压缩器类
         :param path: 压缩文件路径，可以是相对路径或绝对路径
@@ -55,6 +57,8 @@ class Decompressor:
         """
         if tarfile.is_tarfile(path):
             return TarballDecompressor()
+        elif zipfile.is_zipfile(path):
+            return ZipDecompressor()
         else:
             raise UnsupportedTypeError(path)
 
@@ -93,8 +97,3 @@ class Decompressor:
             raise OutputDirPermissionDenyError(path)
         # TODO
         # 1. 校验压缩文件解压输出路径是否有足够的空间
-
-
-if __name__ == '__main__':
-    decompressor = Decompressor()
-    decompressor.decompress('demo.tar.gz')
